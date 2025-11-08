@@ -1,0 +1,5 @@
+interface,"ens18"
+filter,"tcp && port 9191"
+maxPackets,100
+interval,1000
+buffer,10000

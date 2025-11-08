@@ -1,0 +1,489 @@
+// Copyright 2018-2024 Open Networking Foundation (ONF) and the ONF Contributors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at:
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+option go_package = "github.com/opencord/voltha-protos/v5/go/extension";
+option java_package = "org.opencord.voltha.extension";
+
+package extension;
+
+import "voltha_protos/ext_config.proto";
+import "google/protobuf/empty.proto";
+
+message ValueSet {
+    string id = 1;
+    oneof value{
+        config.AlarmConfig alarm_config = 2;
+    }
+}
+
+message ValueType {
+    enum Type {
+            EMPTY = 0;
+            DISTANCE = 1;
+    }
+}
+
+message ValueSpecifier {
+    string id = 1;
+    ValueType.Type value = 2;
+}
+
+message ReturnValues {
+    uint32  Set = 1;       // Specifies what values are
+                           // set/valid in return
+
+    uint32 Unsupported = 2; // Specifies requested values not
+                            // supported by the device
+
+    uint32 Error  = 3;      // Specifies requested values not
+                            // fetched because of error
+
+    uint32 Distance = 4;    // Value of distance Set includes
+                            // DISTANCE
+
+}
+
+message GetDistanceRequest {
+    string onuDeviceId = 1;
+}
+
+message GetDistanceResponse {
+    uint32 distance = 1; // distance in meters
+}
+
+message GetOnuUniInfoRequest {
+    uint32 uniIndex = 1; // Index of the uni starting from 0
+}
+
+message GetOnuUniInfoResponse {
+    enum ConfigurationInd {
+        UNKOWN = 0;
+        TEN_BASE_T_FDX = 1;
+        HUNDRED_BASE_T_FDX = 2;
+        GIGABIT_ETHERNET_FDX = 3;
+        TEN_G_ETHERNET_FDX = 4;
+        TEN_BASE_T_HDX = 5;
+        HUNDRED_BASE_T_HDX = 6;
+        GIGABIT_ETHERNET_HDX = 7;
+    }
+
+    enum AdministrativeState {
+        ADMSTATE_UNDEFINED = 0;
+        LOCKED = 1;
+        UNLOCKED = 2;
+    }
+
+    enum OperationalState {
+        OPERSTATE_UNDEFINED = 0;
+        ENABLED = 1;
+        DISABLED = 2;
+    }
+
+    AdministrativeState admState = 1;
+    OperationalState operState = 2;
+    ConfigurationInd configInd = 3;
+}
+
+message GetOltPortCounters {
+    enum PortType {
+        Port_UNKNOWN = 0;
+        Port_ETHERNET_NNI = 1;
+        Port_PON_OLT = 2;
+    }
+    uint32 portNo = 1;  // Device-unique port number
+    PortType portType = 2;
+}
+
+message GetOltPortCountersResponse {
+    uint64 txBytes = 1;
+    uint64 rxBytes = 2;
+    uint64 txPackets = 3;
+    uint64 rxPackets = 4;
+    uint64 txErrorPackets = 5;
+    uint64 rxErrorPackets = 6;
+    uint64 txBcastPackets = 7;
+    uint64 rxBcastPackets = 8;
+    uint64 txUcastPackets = 9;
+    uint64 rxUcastPackets = 10;
+    uint64 txMcastPackets = 11;
+    uint64 rxMcastPackets = 12;
+}
+
+message GetOnuPonOpticalInfo {
+    google.protobuf.Empty empty = 1;
+}
+
+// These values correspond to the Optical Line Supervision Test results
+// described in section A3.39.5 of ITU-T G.988 (11/2017) specification.
+message GetOnuPonOpticalInfoResponse{
+    float powerFeedVoltage = 1; // unit of value is voltage
+    float receivedOpticalPower = 2; // unit of value is dBm
+    float meanOpticalLaunchPower = 3; // unit of value is dBm
+    float laserBiasCurrent = 4; // unit of value is milli-amphere (mA)
+    float temperature = 5; // unit of value is degree celsius
+}
+
+message GetOnuEthernetBridgePortHistory {
+    enum Direction {
+        UNDEFINED = 0;
+        UPSTREAM = 1;
+        DOWNSTREAM = 2;
+    }
+    Direction direction = 1;
+}
+
+message GetOnuEthernetBridgePortHistoryResponse {
+     uint32 dropEvents = 1;
+     uint32 octets = 2;
+     uint32 packets= 3;
+     uint32 broadcastPackets = 4;
+     uint32 multicastPackets = 5;
+     uint32 crcErroredPackets = 6;
+     uint32 undersizePackets = 7;
+     uint32 oversizePackets = 8;
+     uint32 packets64octets = 9;
+     uint32 packets65To127octets = 10;
+     uint32 packets128To255Octets = 11;
+     uint32 packets256To511octets = 12;
+     uint32 packets512To1023octets = 13;
+     uint32 packets1024To1518octets = 14;
+}
+
+message GetOnuFecHistory {
+    google.protobuf.Empty empty = 1;
+}
+
+message GetOnuFecHistoryResponse {
+    uint32 correctedBytes = 1;
+    uint32 correctedCodeWords = 2;
+    uint32 fecSeconds = 3;
+    uint32 totalCodeWords = 4;
+    uint32 uncorrectableCodeWords = 5;
+}
+
+message GetOnuCountersRequest {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+}
+
+message GetOmciEthernetFrameExtendedPmRequest {
+    string onuDeviceId = 1;
+    oneof is_uni_index {
+        uint32 uniIndex = 2; // Index of the uni starting from 0
+    }
+    bool reset = 3;
+}
+
+// DEPRECATED
+message GetRxPowerRequest {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+}
+
+message GetOltRxPowerRequest {
+    string port_label = 1;
+    // onu_sn is optional and if onu_sn is an empty string and the label is 
+    // of a PON port then it means that the Rx Power corresponding to all 
+    // the ONUs on that PON port is requested. In case the port_label is not
+    // of a PON port, the onu_sn does not have any significance 
+    string onu_sn = 2;
+}
+
+message GetOnuCountersResponse {
+    oneof is_intf_id {
+        fixed32 intf_id = 1;
+    }
+    oneof is_onu_id {
+        fixed32 onu_id = 2;
+    }
+    oneof is_positive_drift {
+        fixed64 positive_drift = 3;
+    }
+    oneof is_negative_drift {
+        fixed64 negative_drift = 4;
+    }
+    oneof is_delimiter_miss_detection {
+        fixed64 delimiter_miss_detection = 5;
+    }
+    oneof is_bip_errors {
+        fixed64 bip_errors = 6;
+    }
+    oneof is_bip_units {
+        fixed64 bip_units = 7;
+    }
+    oneof is_fec_corrected_symbols {
+        fixed64 fec_corrected_symbols = 8;
+    }
+    oneof is_fec_codewords_corrected {
+        fixed64 fec_codewords_corrected = 9;
+    }
+    oneof is_fec_codewords_uncorrectable {
+        fixed64 fec_codewords_uncorrectable = 10;
+    }
+    oneof is_fec_codewords {
+        fixed64 fec_codewords = 11;
+    }
+    oneof is_fec_corrected_units {
+        fixed64 fec_corrected_units = 12;
+    }
+    oneof is_xgem_key_errors {
+        fixed64 xgem_key_errors = 13;
+    }
+    oneof is_xgem_loss {
+        fixed64 xgem_loss = 14;
+    }
+    oneof is_rx_ploams_error {
+        fixed64 rx_ploams_error = 15;
+    }
+    oneof is_rx_ploams_non_idle {
+        fixed64 rx_ploams_non_idle = 16;
+    }
+    oneof is_rx_omci {
+        fixed64 rx_omci = 17;
+    }
+    oneof is_tx_omci {
+        fixed64 tx_omci = 18;
+    }
+    oneof is_rx_omci_packets_crc_error {
+        fixed64 rx_omci_packets_crc_error = 19;
+    }
+    oneof is_rx_bytes {
+        fixed64 rx_bytes = 20;
+    }
+    oneof is_rx_packets {
+        fixed64 rx_packets = 21;
+    }
+    oneof is_tx_bytes {
+        fixed64 tx_bytes = 22;
+    }
+    oneof is_tx_packets {
+        fixed64 tx_packets = 23;
+    }
+    oneof is_ber_reported {
+        fixed64 ber_reported = 24;
+    }
+    oneof is_lcdg_errors {
+        fixed64 lcdg_errors = 25;
+    }
+    oneof is_rdi_errors {
+        fixed64 rdi_errors = 26;
+    }
+    oneof is_timestamp {
+        // reported timestamp in seconds since epoch
+        fixed32 timestamp = 27;
+    }
+}
+
+message OmciEthernetFrameExtendedPm {
+        fixed64 drop_events = 1;
+        fixed64 octets = 2;
+        fixed64 frames = 3;
+        fixed64 broadcast_frames = 4;
+        fixed64 multicast_frames = 5;
+        fixed64 crc_errored_frames = 6;
+        fixed64 undersize_frames = 7;
+        fixed64 oversize_frames = 8;
+        fixed64 frames_64_octets = 9;
+        fixed64 frames_65_to_127_octets = 10;
+        fixed64 frames_128_to_255_octets = 11;
+        fixed64 frames_256_to_511_octets = 12;
+        fixed64 frames_512_to_1023_octets = 13;
+        fixed64 frames_1024_to_1518_octets = 14;
+}
+
+message GetOmciEthernetFrameExtendedPmResponse {
+    enum Format {
+        THIRTY_TWO_BIT = 0;
+        SIXTY_FOUR_BIT = 1;
+    }
+    OmciEthernetFrameExtendedPm upstream = 1;
+    OmciEthernetFrameExtendedPm downstream = 2;
+    Format omci_ethernet_frame_extended_pm_format= 3;
+}
+
+message RxPower {
+    string onu_sn = 1; // if the port on which RxPower is measured is not a PON port this will be empty ("") string
+    string status = 2;
+    string fail_reason = 3;
+    double rx_power = 4;
+}
+
+message GetOltRxPowerResponse {
+    string port_label= 1;
+    repeated RxPower rx_power = 2;
+}
+
+// DEPRECATED
+message GetRxPowerResponse {
+    fixed32 intf_id= 1;
+    fixed32 onu_id = 2;
+    string status = 3;
+    string fail_reason = 4;
+    double rx_power = 5;
+}
+
+message GetOnuOmciTxRxStatsRequest{
+    google.protobuf.Empty empty = 1;
+}
+
+// see ITU-T G.988 clause 11.2.2 
+message GetOnuOmciTxRxStatsResponse {
+    // OMCI baseline Tx frames with AR bit set
+    uint32 base_tx_ar_frames = 1;
+    // OMCI baseline Rx frames with AK bit set
+    uint32 base_rx_ak_frames = 2;
+    // OMCI baseline Tx frames with AR bit unset
+    uint32 base_tx_no_ar_frames = 3;
+    // OMCI baseline Rx frames with AK bit unset
+    uint32 base_rx_no_ak_frames = 4;
+    // OMCI extended Tx frames with AR bit set
+    uint32 ext_tx_ar_frames = 5;
+    // OMCI extended Rx frames with AK bit set
+    uint32 ext_rx_ak_frames = 6;
+    // OMCI extended Tx frames with AR bit unset
+    uint32 ext_tx_no_ar_frames = 7;
+    // OMCI extended Rx frames with AK bit unset
+    uint32 ext_rx_no_ak_frames = 8;
+    // Number of retries of requests (tx) due to not received responses (Rx)
+    uint32 tx_omci_counter_retries = 9;
+    // Number of timeouts of requests (tx) due to not received responses (Rx) after configured number of retries
+    uint32 tx_omci_counter_timeouts = 10;
+}
+
+message GetOnuOmciActiveAlarmsRequest{
+    google.protobuf.Empty empty = 1;
+}
+
+message AlarmData{
+    uint32 class_id = 1;
+    uint32 instance_id = 2;
+    string name = 3;
+    string description = 4;
+}
+
+message GetOnuOmciActiveAlarmsResponse{
+    repeated AlarmData active_alarms = 1;
+}
+
+
+message GetValueRequest {
+    oneof request {
+        GetDistanceRequest distance = 1;
+        GetOnuUniInfoRequest uniInfo = 2;
+        // Corresponds to PmMetricId.PON_PORT_COUNTERS, PmMetricId.NNI_PORT_COUNTERS 
+        GetOltPortCounters oltPortInfo = 3;
+        // Corresponds to PmMetricId.PON_OPTICAL
+        GetOnuPonOpticalInfo onuOpticalInfo = 4;
+        // Corresponds to PmMetricId.ETHERNET_BRIDGE_PORT_HISTORY
+        GetOnuEthernetBridgePortHistory ethBridgePort = 5;
+        // Corresponds to PmMetricId.FEC_HISTORY
+        GetOnuFecHistory fecHistory = 6;
+        GetOnuCountersRequest onuPonInfo = 7;
+        GetOmciEthernetFrameExtendedPmRequest onuInfo = 8;
+        GetRxPowerRequest rxPower = 9; // This is deprecated
+        GetOnuOmciTxRxStatsRequest onuOmciStats = 10;
+        GetOltRxPowerRequest oltRxPower = 11;
+        GetOnuOmciActiveAlarmsRequest onuActiveAlarms  = 12;
+    }
+}
+
+message GetValueResponse {
+    enum Status {
+        STATUS_UNDEFINED = 0;
+        OK = 1;
+        ERROR = 2;
+    }
+
+    enum ErrorReason {
+        REASON_UNDEFINED = 0;
+        UNSUPPORTED = 1;
+        INVALID_DEVICE_ID = 2;
+        INVALID_PORT_TYPE = 3;
+        TIMEOUT = 4;
+        INVALID_REQ_TYPE = 5;
+        INTERNAL_ERROR = 6;
+        INVALID_DEVICE = 7;
+    }
+    Status status = 1;
+    ErrorReason errReason = 2;
+
+    oneof response {
+        GetDistanceResponse distance = 3;
+        GetOnuUniInfoResponse uniInfo = 4;
+        GetOltPortCountersResponse portCoutners = 5;
+        GetOnuPonOpticalInfoResponse onuOpticalInfo = 6;
+        GetOnuEthernetBridgePortHistoryResponse ethBridgePortInfo = 7;
+        GetOnuFecHistoryResponse fecHistory = 8;
+        GetOnuCountersResponse onuPonCounters = 9;
+        GetOmciEthernetFrameExtendedPmResponse onuCounters = 10;
+        GetRxPowerResponse rxPower = 11; // This is DEPRECATED
+        GetOnuOmciTxRxStatsResponse onuOmciStats = 12;
+        GetOltRxPowerResponse oltRxPower = 13;
+        GetOnuOmciActiveAlarmsResponse onuActiveAlarms = 14;
+    }
+}
+
+message SetValueRequest {
+    oneof request {
+        config.AlarmConfig alarm_config = 1;
+    }
+}
+
+message SetValueResponse {
+    enum Status {
+        STATUS_UNDEFINED = 0;
+        OK = 1;
+        ERROR = 2;
+    }
+
+    enum ErrorReason {
+        REASON_UNDEFINED = 0;
+        UNSUPPORTED = 1;
+    }
+    Status status = 1;
+    ErrorReason errReason = 2;
+
+    // As of now we don't have any explicit response for the supported SetValueRequests
+    // to be used later
+    //oneof response {
+    //
+    //}
+}
+
+message SingleGetValueRequest {
+    string targetId = 1;
+    GetValueRequest request = 2;
+}
+
+message SingleGetValueResponse{
+    GetValueResponse response = 1;
+}
+
+message SingleSetValueRequest {
+    string targetId = 1;
+    SetValueRequest request = 2;
+}
+message SingleSetValueResponse {
+    SetValueResponse response = 1;
+}
+
+// Extension is a service to get and set specific attributes
+service Extension {
+    // Get a single attribute
+    rpc GetExtValue(SingleGetValueRequest) returns (SingleGetValueResponse);
+    // Set a single attribute
+    rpc SetExtValue(SingleSetValueRequest) returns (SingleSetValueResponse);
+}

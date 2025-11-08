@@ -1,0 +1,864 @@
+// Copyright 2018-2024 Open Networking Foundation (ONF) and the ONF Contributors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at:
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+option go_package = "github.com/opencord/voltha-protos/v5/go/openolt";
+option java_package = "org.opencord.voltha.openolt";
+option java_outer_classname = "VolthaOpenOLT";
+
+package openolt;
+import "google/api/annotations.proto";
+import "voltha_protos/tech_profile.proto";
+import "voltha_protos/ext_config.proto";
+import "voltha_protos/extensions.proto";
+
+service Openolt {
+
+    rpc DisableOlt(Empty) returns (Empty) {
+        option (google.api.http) = {
+          post: "/v1/Disable"
+          body: "*"
+        };
+    }
+
+    rpc ReenableOlt(Empty) returns (Empty) {
+        option (google.api.http) = {
+          post: "/v1/Reenable"
+          body: "*"
+        };
+    }
+
+    rpc ActivateOnu(Onu) returns (Empty) {
+        option (google.api.http) = {
+          post: "/v1/EnableOnu"
+          body: "*"
+        };
+    }
+
+    rpc DeactivateOnu(Onu) returns (Empty) {
+        option (google.api.http) = {
+          post: "/v1/DisableOnu"
+          body: "*"
+        };
+    }
+
+    rpc DeleteOnu(Onu) returns (Empty) {
+        option (google.api.http) = {
+          post: "/v1/DeleteOnu"
+          body: "*"
+        };
+    }
+
+    rpc OmciMsgOut(OmciMsg) returns (Empty) {
+        option (google.api.http) = {
+          post: "/v1/OmciMsgOut"
+          body: "*"
+        };
+    }
+
+    rpc OnuPacketOut(OnuPacket) returns (Empty) {
+        option (google.api.http) = {
+          post: "/v1/OnuPacketOut"
+          body: "*"
+        };
+    }
+
+    rpc UplinkPacketOut(UplinkPacket) returns (Empty) {
+        option (google.api.http) = {
+          post: "/v1/UplinkPacketOut"
+          body: "*"
+        };
+    }
+
+    rpc FlowAdd(Flow) returns (Empty) {
+        option (google.api.http) = {
+          post: "/v1/FlowAdd"
+          body: "*"
+        };
+    }
+
+    rpc FlowRemove(Flow) returns (Empty) {
+        option (google.api.http) = {
+          post: "/v1/FlowRemove"
+          body: "*"
+        };
+    }
+
+    rpc HeartbeatCheck(Empty) returns (Heartbeat) {
+        option (google.api.http) = {
+          post: "/v1/HeartbeatCheck"
+          body: "*"
+        };
+    }
+
+    rpc EnablePonIf(Interface) returns (Empty) {
+        option (google.api.http) = {
+            post: "/v1/EnablePonIf"
+            body: "*"
+        };
+    }
+
+    rpc DisablePonIf(Interface) returns (Empty) {
+        option (google.api.http) = {
+            post: "/v1/DisablePonIf"
+            body: "*"
+        };
+    }
+
+    rpc GetDeviceInfo(Empty) returns (DeviceInfo) {
+        option (google.api.http) = {
+            post: "/v1/GetDeviceInfo"
+            body: "*"
+        };
+    }
+
+    rpc Reboot(Empty) returns (Empty) {
+         option (google.api.http) = {
+            post: "/v1/Reboot"
+            body: "*"
+        };
+    }
+
+    rpc CollectStatistics(Empty) returns (Empty) {
+        option (google.api.http) = {
+            post: "/v1/CollectStatistics"
+            body: "*"
+        };
+    }
+
+    rpc GetOnuStatistics(Onu) returns (OnuStatistics) {
+        option (google.api.http) = {
+            post: "/v1/GetOnuStatistics"
+            body: "*"
+        };
+    }
+
+    rpc GetGemPortStatistics(OnuPacket) returns (GemPortStatistics) {
+        option (google.api.http) = {
+            post: "/v1/GetGemPortStatistics"
+            body: "*"
+        };
+    }
+
+    rpc CreateTrafficSchedulers(tech_profile.TrafficSchedulers) returns (Empty) {
+        option (google.api.http) = {
+            post: "/v1/CreateTrafficSchedulers"
+            body: "*"
+        };
+    }
+
+    rpc RemoveTrafficSchedulers(tech_profile.TrafficSchedulers) returns (Empty) {
+        option (google.api.http) = {
+            post: "/v1/RemoveTrafficSchedulers"
+            body: "*"
+        };
+    }
+
+    rpc CreateTrafficQueues(tech_profile.TrafficQueues) returns (Empty) {
+        option (google.api.http) = {
+            post: "/v1/CreateTrafficQueues"
+            body: "*"
+        };
+    }
+
+    rpc RemoveTrafficQueues(tech_profile.TrafficQueues) returns (Empty) {
+        option (google.api.http) = {
+            post: "/v1/RemoveTrafficQueues"
+            body: "*"
+        };
+    }
+
+    rpc EnableIndication(Empty) returns (stream Indication) {}
+
+    rpc PerformGroupOperation(Group) returns (Empty) {
+        option (google.api.http) = {
+          post: "/v1/PerformGroupOperation"
+          body: "*"
+        };
+    }
+
+    rpc DeleteGroup(Group) returns (Empty) {
+        option (google.api.http) = {
+          post: "/v1/DeleteGroup"
+          body: "*"
+        };
+    }
+
+    rpc GetExtValue(ValueParam) returns (extension.ReturnValues) {
+        option (google.api.http) = {
+          post: "/v1/GetExtValue"
+          body: "*"
+        };
+    }
+
+    rpc OnuItuPonAlarmSet(config.OnuItuPonAlarm) returns (Empty) {
+        option (google.api.http) = {
+          post: "/v1/OnuItuPonAlarmSet"
+          body: "*"
+        };
+    }
+
+    rpc GetLogicalOnuDistanceZero(Onu) returns (OnuLogicalDistance) {
+        option (google.api.http) = {
+            post: "/v1/GetLogicalOnuDistanceZero"
+            body: "*"
+        };
+    }
+
+    rpc GetLogicalOnuDistance(Onu) returns (OnuLogicalDistance) {
+        option (google.api.http) = {
+            post: "/v1/GetLogicalOnuDistance"
+            body: "*"
+        };
+    }
+
+    rpc GetPonRxPower(Onu) returns (PonRxPowerData) {
+        option (google.api.http) = {
+          post: "/v1/GetPonRxPower"
+          body: "*"
+        };
+    }
+
+    /* 
+     * GetOnuInfo takes Onu id, serialnumber, and pon interface as argument from the onu structure.
+     * Returns the Onu info from the device.
+     */
+    rpc GetOnuInfo(Onu) returns (OnuInfo) {
+        option (google.api.http) = {
+          post: "/v1/GetOnuInfo"
+          body: "*"
+        };
+    }
+
+    /*
+     * GetPonInterfaceInfo takes the pon intf id as argument.
+     * Returns the pon interface information from the device.
+     */
+    rpc GetPonInterfaceInfo(Interface) returns (PonIntfInfo) {
+        option (google.api.http) = {
+          post: "/v1/GetInterfaceInfo"
+          body: "*"
+        };
+    }
+}
+
+message Indication {
+    oneof data {
+        OltIndication olt_ind = 1;
+        IntfIndication intf_ind = 2;
+        IntfOperIndication intf_oper_ind = 3;
+        OnuDiscIndication onu_disc_ind = 4;
+        OnuIndication onu_ind = 5;
+        OmciIndication omci_ind = 6;
+        PacketIndication pkt_ind = 7;
+        PortStatistics port_stats = 8;
+        FlowStatistics flow_stats = 9;
+        AlarmIndication alarm_ind= 10;
+    }
+}
+
+message AlarmIndication {
+    oneof data {
+        LosIndication los_ind = 1;
+        DyingGaspIndication dying_gasp_ind = 2;
+        OnuAlarmIndication onu_alarm_ind = 3;
+        OnuStartupFailureIndication onu_startup_fail_ind = 4;
+        OnuSignalDegradeIndication onu_signal_degrade_ind = 5;
+        OnuDriftOfWindowIndication onu_drift_of_window_ind = 6;
+        OnuLossOfOmciChannelIndication onu_loss_omci_ind = 7;
+        OnuSignalsFailureIndication onu_signals_fail_ind = 8;
+        OnuTransmissionInterferenceWarning onu_tiwi_ind = 9;
+        OnuActivationFailureIndication onu_activation_fail_ind = 10;
+        OnuProcessingErrorIndication onu_processing_error_ind = 11;
+        OnuLossOfKeySyncFailureIndication onu_loss_of_sync_fail_ind = 12;
+        OnuItuPonStatsIndication onu_itu_pon_stats_ind = 13;
+        OnuDeactivationFailureIndication onu_deactivation_failure_ind = 14;
+        OnuRemoteDefectIndication onu_remote_defect_ind = 15;
+        OnuLossOfGEMChannelDelineationIndication onu_loss_gem_delineation_ind = 16;
+        OnuPhysicalEquipmentErrorIndication onu_physical_equipment_error_ind = 17;
+        OnuLossOfAcknowledgementIndication onu_loss_of_ack_ind = 18;
+        OnuDifferentialReachExceededIndication onu_diff_reach_exceeded_ind = 19;
+    }
+}
+
+message OltIndication {
+    string oper_state = 1;	// up, down
+}
+
+message IntfIndication {
+    fixed32 intf_id = 1;
+    string oper_state = 2;      // up, down
+}
+
+message OnuDiscIndication {
+    fixed32 intf_id = 1;
+    SerialNumber serial_number = 2;
+}
+
+message OnuIndication {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    string oper_state = 3;      // up, down
+    string admin_state = 5;     // up, down
+    SerialNumber serial_number = 4;
+    /** activation fail reason. */
+    enum ActivationFailReason
+    {
+        ONU_ACTIVATION_FAIL_REASON_NONE = 0;
+        ONU_ACTIVATION_FAIL_REASON_RANGING = 1; //Ranging Failure
+        ONU_ACTIVATION_FAIL_REASON_PASSWORD_AUTHENTICATION = 2; //Password authentication
+        ONU_ACTIVATION_FAIL_REASON_LOS = 3; //LOS
+        ONU_ACTIVATION_FAIL_ONU_ALARM = 4; // ONU Alarm
+        ONU_ACTIVATION_FAIL_SWITCH_OVER = 5; //protection switch over
+    }
+    ActivationFailReason fail_reason = 6;
+
+}
+
+message IntfOperIndication {
+    string type = 1;		// nni, pon
+    fixed32 intf_id = 2;
+    string oper_state = 3;      // up, down
+    fixed32 speed = 4;      // measured in Mbps
+    string technology = 5;
+
+    message PONResourceRanges {
+
+        message Pool {
+
+            enum PoolType {
+                ONU_ID = 0;
+                ALLOC_ID = 1;
+                GEMPORT_ID = 2;
+                FLOW_ID = 3;
+            }
+
+
+            PoolType type = 1;
+            fixed32 start = 3; // lower bound on IDs allocated from this pool
+            fixed32 end = 4; // upper bound on IDs allocated from this pool
+        }
+
+        repeated Pool pools = 3;
+    }
+
+    PONResourceRanges ranges = 6;
+}
+
+message OmciIndication {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    bytes pkt = 3;
+}
+
+message PacketIndication {
+    string intf_type = 5;		// nni, pon, unknown
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 8;
+    fixed32 uni_id = 9;
+    fixed32 gemport_id = 2;
+    fixed32 flow_id = 3;
+    fixed32 port_no = 6;
+    fixed64 cookie = 7;
+    bytes pkt = 4;
+}
+
+message Interface {
+    fixed32 intf_id = 1;
+}
+
+message Heartbeat {
+    fixed32 heartbeat_signature = 1;
+}
+
+message Onu {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    SerialNumber serial_number = 3;
+    fixed32 pir = 4;   // peak information rate assigned to onu
+    bool omcc_encryption = 5;
+}
+
+message OnuLogicalDistance {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    fixed32 logical_onu_distance_zero = 3; //0km logical distance
+    fixed32 logical_onu_distance = 4;
+}
+
+message OmciMsg {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    bytes pkt = 3;
+}
+
+message OnuPacket {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    fixed32 port_no = 4;
+    fixed32 gemport_id = 5;
+    bytes pkt = 3;
+}
+
+message UplinkPacket {
+    fixed32 intf_id = 1;
+    bytes pkt = 2;
+}
+
+message DeviceInfo {
+    string vendor = 1;
+    string model = 2;
+    string hardware_version = 3;
+    string firmware_version = 4;
+    string device_id = 16;
+    string device_serial_number = 17;
+    bool previously_connected = 19; // used to indicate agent reconcile status
+
+    // Total number of pon intf ports on the device
+    fixed32 pon_ports = 12;
+
+    reserved 5 to 11, 13, 14;
+    // Not used anymore, this information is defined per-range only
+    // and is fully provided by DeviceResourceRanges
+    //
+    // string technology = 5;
+    // fixed32 onu_id_start = 6;
+    // fixed32 onu_id_end = 7;
+    // fixed32 alloc_id_start = 8;
+    // fixed32 alloc_id_end = 9;
+    // fixed32 gemport_id_start = 10;
+    // fixed32 gemport_id_end = 11;
+    // fixed32 flow_id_start = 13;
+    // fixed32 flow_id_end = 14;
+
+    message DeviceResourceRanges {
+
+        // List of 0 or more intf_ids that use the same technology and pools.
+        // If 0 intf_ids supplied, it implies ALL interfaces
+        repeated fixed32 intf_ids = 1;
+
+        // Technology profile for this pool
+        string technology = 2;
+
+        message Pool {
+            enum PoolType {
+                ONU_ID = 0;
+                ALLOC_ID = 1;
+                GEMPORT_ID = 2;
+                FLOW_ID = 3;
+            }
+
+            enum SharingType {
+                DEDICATED_PER_INTF = 0;
+                SHARED_BY_ALL_INTF_ALL_TECH = 1; // Shared across all interfaces in all technologies in all ranges
+                SHARED_BY_ALL_INTF_SAME_TECH = 2; // Shared across all interfaces of the same technology used in this range
+            }
+
+            PoolType type = 1;
+	    SharingType sharing = 2;
+	    fixed32 start = 3; // lower bound on IDs allocated from this pool
+	    fixed32 end = 4; // upper bound on IDs allocated from this pool
+	}
+        repeated Pool pools = 3;
+    }
+    repeated DeviceResourceRanges ranges = 15;
+}
+
+message Classifier {
+    fixed32 o_tpid = 1;
+    fixed32 o_vid = 2;
+    fixed32 i_tpid = 3;
+    fixed32 i_vid = 4;
+    fixed32 o_pbits = 5;
+    fixed32 i_pbits = 6;
+    fixed32 eth_type = 7;
+    bytes dst_mac = 8;
+    bytes src_mac = 9;
+    fixed32 ip_proto = 10;
+    fixed32 dst_ip = 11;
+    fixed32 src_ip = 12;
+    fixed32 src_port = 13;
+    fixed32 dst_port = 14;
+    string pkt_tag_type = 15;	// untagged, single_tag, double_tag
+}
+
+message ActionCmd {
+    bool add_outer_tag = 1;
+    bool remove_outer_tag = 2;
+    bool trap_to_host = 3;
+    bool remark_outer_pbits = 4;
+    bool remark_inner_pbits = 5;
+    bool add_inner_tag = 6;
+    bool remove_inner_tag = 7;
+    bool translate_inner_tag = 8;
+    bool translate_outer_tag = 9;
+}
+
+message Action {
+    ActionCmd cmd = 1;
+    fixed32 o_vid = 2;
+    fixed32 o_pbits = 3;
+    fixed32 o_tpid = 4;
+    fixed32 i_vid = 5;
+    fixed32 i_pbits = 6;
+    fixed32 i_tpid = 7;
+}
+
+message Flow {
+    sfixed32 access_intf_id = 1;
+    sfixed32 onu_id = 2;
+    sfixed32 uni_id = 11;
+
+    fixed64 flow_id = 3; // voltha flow-id. 0 is not a valid flow_id
+    fixed64 symmetric_flow_id = 18; // symmetric voltha flow-id, if applicable. All data path flows generally have a symmetric flow,
+                                    // but trap-to-controller flows do not have a symmetric flow
+                                    // Broadcom BAL requires that symmetric flows use the same BAL flow-id
+
+    string flow_type = 4; // upstream, downstream, broadcast, multicast
+    sfixed32 alloc_id = 10;
+    sfixed32 network_intf_id = 5;
+    sfixed32 gemport_id = 6; // When 'replicate_flow' field is true, this field is obsolete.
+    Classifier classifier = 7;
+    Action action = 8;
+    sfixed32 priority = 9;
+    fixed64 cookie = 12; // must be provided for any flow with trap_to_host action. Returned in PacketIndication
+    fixed32 port_no = 13; // must be provided for any flow with trap_to_host action. Returned in PacketIndication
+    fixed32 group_id = 14;
+    fixed32 tech_profile_id = 15;
+
+    bool replicate_flow = 16; // When this field is true, use pbitToGemPortID to know which p-bit needs to be classfied to which gem port.
+    map<fixed32, fixed32> pbit_to_gemport = 17; // Map of p-bit to gem port ID
+    map<fixed32, bool> gemport_to_aes = 19; // Map of gem port ID to aes encryption
+}
+
+message SerialNumber {
+    bytes vendor_id = 1;
+    bytes vendor_specific = 2;
+}
+
+message PortStatistics {
+    fixed32 intf_id = 1;
+    fixed64 rx_bytes = 2;
+    fixed64 rx_packets = 3;
+    fixed64 rx_ucast_packets = 4;
+    fixed64 rx_mcast_packets = 5;
+    fixed64 rx_bcast_packets = 6;
+    fixed64 rx_error_packets = 7;
+    fixed64 rx_frames = 17;
+    fixed64 rx_frames_64 = 18;
+    fixed64 rx_frames_65_127 = 19;
+    fixed64 rx_frames_128_255 = 20;
+    fixed64 rx_frames_256_511 = 21;
+    fixed64 rx_frames_512_1023 = 22;
+    fixed64 rx_frames_1024_1518 = 23;
+    fixed64 rx_frames_1519_2047 = 24;
+    fixed64 rx_frames_2048_4095 = 25;
+    fixed64 rx_frames_4096_9216 = 26;
+    fixed64 rx_frames_9217_16383 = 27;
+    fixed64 rx_crc_errors = 14;
+
+    fixed64 tx_bytes = 8;
+    fixed64 tx_packets = 9;
+    fixed64 tx_ucast_packets = 10;
+    fixed64 tx_mcast_packets = 11;
+    fixed64 tx_bcast_packets = 12;
+    fixed64 tx_error_packets = 13;
+    fixed64 tx_frames = 28;
+    fixed64 tx_frames_64 = 29;
+    fixed64 tx_frames_65_127 = 30;
+    fixed64 tx_frames_128_255 = 31;
+    fixed64 tx_frames_256_511 = 32;
+    fixed64 tx_frames_512_1023 = 33;
+    fixed64 tx_frames_1024_1518 = 34;
+    fixed64 tx_frames_1519_2047 = 35;
+    fixed64 tx_frames_2048_4095 = 36;
+    fixed64 tx_frames_4096_9216 = 37;
+    fixed64 tx_frames_9217_16383 = 38;
+
+    fixed64 bip_errors = 15;
+    fixed32 timestamp = 16;
+}
+
+message OnuStatistics {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    fixed64 positive_drift = 3;
+    fixed64 negative_drift = 4;
+    fixed64 delimiter_miss_detection = 5;
+    fixed64 bip_errors = 6;
+    fixed64 bip_units = 7;
+    fixed64 fec_corrected_symbols = 8;
+    fixed64 fec_codewords_corrected = 9;
+    fixed64 fec_codewords_uncorrectable = 10;
+    fixed64 fec_codewords = 11;
+    fixed64 fec_corrected_units = 12;
+    fixed64 xgem_key_errors = 13;
+    fixed64 xgem_loss = 14;
+    fixed64 rx_ploams_error = 15;
+    fixed64 rx_ploams_non_idle = 16;
+    fixed64 rx_omci = 17;
+    fixed64 rx_omci_packets_crc_error = 18;
+    fixed64 rx_bytes = 19;
+    fixed64 rx_packets = 20;
+    fixed64 tx_bytes = 21;
+    fixed64 tx_packets = 22;
+    fixed64 ber_reported = 23;
+    fixed64 lcdg_errors = 24;
+    fixed64 rdi_errors = 25;
+    fixed32 timestamp = 26;
+}
+
+message GemPortStatistics {
+    fixed32 intf_id = 1;
+    fixed32 gemport_id = 2;
+    fixed64 rx_packets = 3;
+    fixed64 rx_bytes = 4;
+    fixed64 tx_packets = 5;
+    fixed64 tx_bytes = 6;
+    fixed32 timestamp = 26;
+}
+
+message FlowStatistics {
+    fixed32 flow_id = 1;
+    fixed64 rx_bytes = 2;
+    fixed64 rx_packets = 3;
+    fixed64 tx_bytes = 8;
+    fixed64 tx_packets = 9;
+    fixed32 timestamp = 16;
+}
+
+message LosIndication {
+    fixed32 intf_id = 1;
+    string status = 2;
+}
+
+message DyingGaspIndication {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    string status = 3;
+}
+
+message OnuAlarmIndication {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    string los_status = 3;
+    string lob_status = 4;
+    string lopc_miss_status = 5;
+    string lopc_mic_error_status = 6;
+    string lofi_status = 7;
+    string loami_status = 8;
+}
+
+message OnuStartupFailureIndication {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    string status = 3;
+}
+
+message OnuSignalDegradeIndication {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    string status = 3;
+    fixed32 inverse_bit_error_rate = 4;
+}
+
+message OnuDriftOfWindowIndication {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    string status = 3;
+    fixed32 drift = 4;
+    fixed32 new_eqd = 5;
+}
+
+message OnuLossOfOmciChannelIndication {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    string status = 3;
+}
+
+message OnuSignalsFailureIndication {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    string status = 3;
+    fixed32 inverse_bit_error_rate = 4;
+}
+
+message OnuTransmissionInterferenceWarning {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    string status = 3;
+    fixed32 drift = 4;
+}
+
+message OnuActivationFailureIndication {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    fixed32 fail_reason = 3;
+}
+
+message OnuLossOfKeySyncFailureIndication {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    string status = 3;
+}
+
+message RdiErrorIndication {
+    fixed64 rdi_error_count = 1; // RDI Error count
+    string status = 2; // on/off based on configured reporting condition
+}
+
+message OnuItuPonStatsIndication{
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    oneof stats {
+        RdiErrorIndication rdi_error_ind = 3;
+        // add more here
+    }
+}
+
+message OnuProcessingErrorIndication {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+}
+
+message OnuDeactivationFailureIndication {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    string status = 3;
+}
+
+message OnuRemoteDefectIndication {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    fixed64 rdi_errors = 3;
+}
+
+message OnuLossOfGEMChannelDelineationIndication {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    string status = 3;
+    fixed32 delineation_errors = 4;
+}
+
+message OnuPhysicalEquipmentErrorIndication {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    string status = 3;
+}
+
+message OnuLossOfAcknowledgementIndication {
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    string status = 3;
+}
+
+message OnuDifferentialReachExceededIndication {
+        fixed32 intf_id = 1;
+        fixed32 onu_id = 2;
+        string status = 3;
+        fixed32 distance = 4;
+}
+
+message GroupMember {
+    enum InterfaceType {
+        PON = 0;
+        EPON_1G_PATH = 1;
+        EPON_10G_PATH = 2;
+    }
+    uint32 interface_id = 1;
+    InterfaceType interface_type = 2;
+    uint32 gem_port_id = 3;
+    uint32 priority = 4; // Priority (and also the ID) of the default fixed queue for the multicast traffic.
+                         // This queue is attached to the default PON port scheduler.
+}
+
+message Group {
+    enum GroupMembersCommand {
+        ADD_MEMBERS = 0;
+        REMOVE_MEMBERS = 1;
+        SET_MEMBERS = 2;
+    }
+
+    uint32 group_id = 1;
+    GroupMembersCommand command = 2;
+    repeated GroupMember members = 3;
+    Action action = 4;
+}
+
+message ValueParam {
+	Onu onu = 1;
+	extension.ValueType.Type value = 2;
+}
+
+message PonRxPowerData {
+    enum RssiMeasurementFailReason {
+        FAIL_REASON_NONE = 0;
+        FAIL_REASON_NO_DELIMITER = 1;
+        FAIL_REASON_NO_ACCESS = 2;
+    }
+
+    fixed32 intf_id = 1;
+    fixed32 onu_id = 2;
+    string status = 3;
+    RssiMeasurementFailReason fail_reason = 4;
+    double rx_power_mean_dbm = 5;
+}
+
+enum AlarmState {
+    OFF   = 0;
+    ON    = 1;
+}
+
+/*
+ * contains the onu id, state of the onu and the information about the alarms on the onu.
+ * As of now only few alarms are added, any further information needed can be added to the structure.
+ */
+message OnuInfo {
+    fixed32        onu_id  = 1;
+    enum OnuState {
+        /*
+         * There are other states in BAL for ONU, which voltha is not interested as of now.
+         * UNKNOWN is to be filled for the rest of the states other than NOT_CONFIGURED/ACTIVE/INACTIVE/DISABLED
+         */
+        UNKNOWN        = 0;
+        NOT_CONFIGURED = 1;
+        ACTIVE         = 2;
+        INACTIVE       = 3;
+        DISABLED       = 4;
+    }
+    OnuState      state = 2;
+    AlarmState    losi = 3;
+    AlarmState    lofi = 4;
+    AlarmState    loami = 5;
+}
+
+/*
+ * IntfInfo has the interface Id and if there are any alarms active on that interface.
+ * Any further information needed from the interface object can be added to the structure.
+ */
+message PonIntfInfo {
+    fixed32      intf_id = 1;
+    enum PonIntfState {
+        UNKNOWN        = 0;
+        ACTIVE_WORKING = 1;
+        ACTIVE_STANDBY = 2;
+        INACTIVE       = 3;
+        DISABLED       = 4;
+    }
+    PonIntfState state = 3;
+    AlarmState   los = 4;
+}
+
+message Empty {}

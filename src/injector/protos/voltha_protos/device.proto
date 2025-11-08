@@ -1,0 +1,494 @@
+syntax = "proto3";
+
+option go_package = "github.com/opencord/voltha-protos/v5/go/voltha";
+option java_package = "org.opencord.voltha.device";
+option java_outer_classname = "VolthaDevice";
+
+package device;
+
+import "google/protobuf/any.proto";
+
+import "voltha_protos/common.proto";
+import "voltha_protos/openflow_13.proto";
+
+// A Device Type
+message DeviceType {
+
+    // Unique name for the device type
+    string id = 1;
+
+    // Unique vendor id for the device type applicable to ONU
+    // 4 bytes of vendor id from ONU serial number
+    string vendor_id = 5;
+
+    repeated string vendor_ids = 6;
+
+    // Name of the adapter that handles device type
+    // Deprecated and replaced by adapterType
+    string adapter = 2;
+
+    // Capabilities
+    bool accepts_bulk_flow_update = 3;
+    bool accepts_add_remove_flow_updates = 4;
+    bool accepts_direct_logical_flows_update = 7;
+
+    // Type of adapter that can handle this device type
+    string adapter_type = 8;
+
+}
+
+// A plurality of device types
+message DeviceTypes {
+    repeated DeviceType items = 1;
+}
+
+message PmConfig {
+    enum PmType {
+        COUNTER = 0;
+        GAUGE = 1;
+        STATE = 2;
+        CONTEXT = 3;
+    }
+    string name = 1;
+    PmType type = 2;
+    bool enabled = 3; // Whether or not this metric makes it to Kafka
+    uint32 sample_freq = 4; // Sample rate in 10ths of a second
+}
+
+message PmGroupConfig {
+    string group_name = 1;
+    uint32 group_freq = 2; // Frequency applicable to the grop
+    bool enabled = 3; // Enable/disable group level only
+    repeated PmConfig metrics = 4;
+}
+
+message PmConfigs {
+    string id = 1; // To work around a chameleon POST bug
+    uint32 default_freq = 2; // Default sample rate
+    // Forces group names and group semantics
+    bool grouped = 3;
+    // Allows Pm to set an individual sample frequency
+    bool freq_override = 4;
+    repeated PmGroupConfig groups = 5; // The groups if grouped is true
+    repeated PmConfig metrics = 6; // The metrics themselves if grouped is false.
+    uint32 max_skew = 7; //Default value is set to 5 seconds
+}
+
+//Object representing an image
+message Image {
+
+    string name = 1;                // software patch name
+
+    // Version, this is the sole identifier of the image. it's the vendor specified OMCI version
+    // must be known at the time of initiating a download, activate, commit image on an onu.
+    string version = 2;
+
+    // hash of the image to be verified against
+    // Deprecated in voltha 2.8, will be removed
+    uint32 hash = 3;
+
+    // Deprecated in voltha 2.8, will be removed
+    string install_datetime = 4;    // combined date and time expressed in UTC.
+    // use ISO 8601 format for date and time
+
+    // The active software image is one that is currently loaded and executing
+    // in the ONU or circuit pack. Under normal operation, one software image
+    // is always active while the other is inactive. Under no circumstances are
+    // both software images allowed to be active at the same time
+    // Deprecated in voltha 2.8, will be removed
+    bool is_active = 5;             // True if the image is active
+
+    // The committed software image is loaded and executed upon reboot of the
+    // ONU and/or circuit pack. During normal operation, one software image is
+    // always committed, while the other is uncommitted.
+    // Deprecated in voltha 2.8, will be removed
+    bool is_committed = 6;          // True if the image is committed
+
+    // A software image is valid if it has been verified to be an executable
+    // code image. The verification mechanism is not subject to standardization;
+    // however, it should include at least a data integrity (e.g., CRC) check of
+    // the entire code image.
+    // Deprecated in voltha 2.8, will be removed
+    bool is_valid = 7;              // True if the image is valid
+
+    // URL where the image is available
+    // URL MUST be fully qualified,
+    // including filename, username and password
+    string url = 8;
+
+    // Represents the vendor/device mfr
+    // Needs to match the vendor of the device the image will be installed on
+    // optional, if not matched no check will be performed
+    string vendor = 9;
+
+    // Represents the ONU Image CRC value.
+    // Default to value 0 if not specified.
+    // If different then 0 it's used to verify the image retrieved from outside before sending it to the ONU.
+    // Calculation of this needs to be done according to ITU-T I.363.5 as per OMCI spec (section A.2.27)
+    uint32 crc32 = 10;
+
+    //TODO augment with RecommendedWindowsSize, Timeout and other valuable attributes.
+
+}
+
+// Older version of the API please see DeviceImageDownloadRequest
+// Deprecated in voltha 2.8, will be removed
+message ImageDownload {
+    option deprecated = true;
+    enum ImageDownloadState {
+        DOWNLOAD_UNKNOWN = 0;
+        DOWNLOAD_SUCCEEDED = 1;
+        DOWNLOAD_REQUESTED = 2;
+        DOWNLOAD_STARTED = 3;
+        DOWNLOAD_FAILED = 4;
+        DOWNLOAD_UNSUPPORTED = 5;
+        DOWNLOAD_CANCELLED = 6;
+    }
+
+    enum ImageDownloadFailureReason {
+        NO_ERROR = 0;
+        INVALID_URL = 1;
+        DEVICE_BUSY = 2;
+        INSUFFICIENT_SPACE = 3;
+        UNKNOWN_ERROR = 4;
+        CANCELLED = 5;
+    }
+
+    enum ImageActivateState {
+        IMAGE_UNKNOWN = 0;
+        IMAGE_INACTIVE = 1;
+        IMAGE_ACTIVATING = 2;
+        IMAGE_ACTIVE = 3;
+        IMAGE_REVERTING = 4;
+        IMAGE_REVERTED = 5;
+    }
+
+    // Device Identifier
+    string id = 1;
+
+    // Image unique identifier
+    string name = 2;
+
+    // URL where the image is available
+    // should include username password
+    string url = 3;
+
+    // CRC of the image to be verified aginst
+    uint32 crc = 4;
+
+    // Download state
+    ImageDownloadState download_state = 5;
+
+    // Downloaded version
+    string image_version = 6;
+
+    // Bytes downloaded
+    uint32 downloaded_bytes = 7;
+
+    // Download failure reason
+    ImageDownloadFailureReason reason= 8;
+
+    // Additional info
+    string additional_info = 9;
+
+    // Save current configuration
+    bool save_config = 10;
+
+    // Image local location
+    string local_dir = 11;
+
+    // Image activation state
+    ImageActivateState image_state = 12;
+
+    // Image file size
+    uint32 file_size = 13;
+}
+
+// Deprecated in voltha 2.8, will be removed
+message ImageDownloads {
+    option deprecated = true;
+    repeated ImageDownload items = 2;
+}
+
+message Images {
+    repeated Image image = 1;
+}
+
+// OnuImage represents the OMCI information as per OMCI spec
+// the information will be populates exactly as extracted from the device.
+message OnuImage {
+    //image version
+    string version = 1;
+    bool isCommited = 2;
+    bool isActive = 3;
+    bool isValid = 4;
+    string productCode = 5;
+    // Hash is computed by the ONU and is optional as per OMCI spec (paragraph 9.1.4)
+    // No assumption should be made on the existence of this attribute at any time.
+    string hash = 6;
+}
+
+message OnuImages {
+    repeated OnuImage items = 1;
+}
+
+message DeviceImageState {
+    string device_id = 1;
+    ImageState imageState = 2;
+}
+
+message ImageState {
+    enum ImageDownloadState {
+        DOWNLOAD_UNKNOWN = 0;
+        DOWNLOAD_SUCCEEDED = 1;
+        DOWNLOAD_REQUESTED = 2;
+        DOWNLOAD_STARTED = 3;
+        DOWNLOAD_FAILED = 4;
+        DOWNLOAD_UNSUPPORTED = 5;
+        DOWNLOAD_CANCELLING = 6;
+        DOWNLOAD_CANCELLED = 7;
+    }
+
+    enum ImageFailureReason {
+        NO_ERROR = 0;
+        INVALID_URL = 1;
+        DEVICE_BUSY = 2;
+        INSUFFICIENT_SPACE = 3; // VOLTHA ONU ADAPTER has no more space to store images
+        UNKNOWN_ERROR = 4; // Used also for Checksum failure on ONU
+        CANCELLED_ON_REQUEST = 5;
+        CANCELLED_ON_ONU_STATE = 6;
+        VENDOR_DEVICE_MISMATCH = 7;
+        OMCI_TRANSFER_ERROR = 8;
+        IMAGE_REFUSED_BY_ONU = 9;
+    }
+
+    enum ImageActivationState {
+        IMAGE_UNKNOWN = 0;
+        IMAGE_INACTIVE = 1;
+        IMAGE_ACTIVATING = 2; // Happens during Reboot of the ONU after activate call.
+        IMAGE_ACTIVE = 3;
+        IMAGE_COMMITTING = 4;
+        IMAGE_COMMITTED = 5;
+        IMAGE_ACTIVATION_ABORTING = 6;
+        IMAGE_ACTIVATION_ABORTED = 7;
+        IMAGE_COMMIT_ABORTING = 8;
+        IMAGE_COMMIT_ABORTED = 9;
+        IMAGE_DOWNLOADING = 10;
+    }
+
+    // image version
+    string version = 1;
+
+    // Download state
+    ImageDownloadState download_state = 2;
+
+    // Image Operation Failure reason (use for both Download and Activate)
+    ImageFailureReason reason= 3;
+
+    // Image activation state
+    ImageActivationState image_state = 4;
+
+}
+
+message Port {
+    enum PortType {
+        UNKNOWN = 0;
+        ETHERNET_NNI = 1;
+        ETHERNET_UNI = 2;
+        PON_OLT = 3;
+        PON_ONU = 4;
+        VENET_OLT = 5;
+        VENET_ONU = 6;
+    }
+
+    uint32 port_no = 1;  // Device-unique port number
+
+    string label = 2;  // Arbitrary port label
+
+    PortType type = 3;  //  Type of port
+
+    common.AdminState.Types admin_state = 5;
+
+    common.OperStatus.Types oper_status = 6;
+
+    string device_id = 7;  // Unique .id of device that owns this port
+
+    message PeerPort {
+        string device_id = 1;
+        uint32 port_no = 2;
+    }
+    repeated PeerPort peers = 8;
+
+    fixed64 rx_packets = 9;
+    fixed64 rx_bytes = 10;
+    fixed64 rx_errors = 11;
+    fixed64 tx_packets = 12;
+    fixed64 tx_bytes = 13;
+    fixed64 tx_errors = 14;
+
+    // ofp_port represents the characteristics of a port, e.g. hardware
+    // address and supported features.  This field is relevant only for
+    // UNI and NNI ports.   For PON ports, it can be left empty.
+    openflow_13.ofp_port ofp_port = 15;
+}
+
+message Ports {
+    repeated Port items = 1;
+}
+
+// A Physical Device instance
+message Device {
+    // Voltha's device identifier
+    string id = 1 ;
+
+    // Device type, refers to one of the registered device types
+    string type = 2 ;
+
+    // Is this device a root device. Each logical switch has one root
+    // device that is associated with the logical flow switch.
+    bool root = 3 ;
+
+    // Parent device id, in the device tree (for a root device, the parent_id
+    // is the logical_device.id)
+    string parent_id = 4;
+    uint32 parent_port_no = 20;
+
+    // Vendor, version, serial number, etc.
+    string vendor = 5;
+    string model = 6;
+    string hardware_version = 7;
+    string firmware_version = 8;
+    // List of software on the device
+    Images images = 9;
+    string serial_number = 10;
+    string vendor_id = 24;
+
+    // adapter is deprecated and replaced by adapter_endpoint
+    reserved 11;
+    //string adapter = 11;
+
+    // Indicates how to reach the adapter instance that manages this device
+    string adapter_endpoint = 25;
+
+    // Device contact on vlan (if 0, no vlan)
+    uint32 vlan = 12;
+
+    message ProxyAddress {
+        string device_id = 1;  // Which device to use as proxy to this device
+        string device_type = 2; // The device type of the proxy device to use as the adapter name
+        uint32 channel_id = 3;  // Sub-address within proxy
+        uint32 channel_group_id = 4; // Channel Group index
+        string channel_termination = 5; // Channel Termination name
+        uint32 onu_id = 6; // onu identifier; optional
+        uint32 onu_session_id = 7; // session identifier for the ONU; optional
+        string adapter_endpoint = 8; // endpoint of the adapter that handles the proxy device
+    };
+
+    // Device contact MAC address (format: "xx:xx:xx:xx:xx:xx")
+    string mac_address = 13;
+
+    oneof address {
+
+        // Device contact IPv4 address (format: "a.b.c.d" or can use hostname too)
+        string ipv4_address = 14;
+
+        // Device contact IPv6 address using the canonical string form
+        // ("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx")
+        string ipv6_address = 15;
+
+        string host_and_port = 21;
+
+    };
+    string extra_args = 23;  // Used to pass additional device specific arguments
+
+    ProxyAddress proxy_address = 19;
+
+    common.AdminState.Types admin_state = 16;
+
+    common.OperStatus.Types oper_status = 17 ;
+
+    string reason = 22 ;  //  Used in FAILED state
+
+    common.ConnectStatus.Types connect_status = 18 ;
+
+    // TODO additional common attribute here
+
+    // Device type specific attributes
+    google.protobuf.Any custom = 64;
+
+    // PmConfigs type
+    PmConfigs pm_configs = 131 ;
+
+    repeated ImageDownload image_downloads = 133;
+
+}
+
+message DeviceImageDownloadRequest {
+
+    // Device Id
+    // allows for operations on multiple devices.
+    repeated common.ID device_id = 1;
+
+    //The image for the device containing all the information
+    Image image = 2;
+
+    //Activate the image if the download to the device is successful
+    bool activateOnSuccess = 3;
+
+    //Automatically commit the image if the activation on the device is successful
+    bool commitOnSuccess = 4;
+}
+
+message DeviceImageRequest {
+
+    //Device Id
+    //allows for operations on multiple adapters.
+    repeated common.ID device_id = 1;
+
+    // Image Version, this is the sole identifier of the image. it's the vendor specified OMCI version
+    // must be known at the time of initiating a download, activate, commit image on an onu.
+    string version = 2;
+
+    //Automatically commit the image if the activation on the device is successful
+    bool commitOnSuccess = 3;
+}
+
+message DeviceImageResponse {
+
+    //Image state for the different devices
+    repeated DeviceImageState device_image_states = 1;
+}
+
+// Device Self Test Response
+message SelfTestResponse {
+
+	enum SelfTestResult  {
+	    SUCCESS = 0;
+	    FAILURE = 1;
+	    NOT_SUPPORTED = 2;
+	    UNKNOWN_ERROR = 3;
+    }
+    SelfTestResult result = 1;
+}
+
+message Devices {
+    repeated Device items = 1;
+}
+
+message SimulateAlarmRequest {
+    enum OperationType {
+        RAISE = 0;
+        CLEAR = 1;
+    }
+    // Device Identifier
+    string id = 1;
+    string indicator = 2;
+    string intf_id = 3;
+    string port_type_name = 4;
+    string onu_device_id = 5;
+    int32 inverse_bit_error_rate = 6;
+    int32 drift = 7;
+    int32 new_eqd = 8;
+    string onu_serial_number = 9;
+    OperationType operation = 10;
+}

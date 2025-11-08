@@ -1,0 +1,317 @@
+<!--
+Copyright 2025-present Fridolin Siegmund, Stefano Acquaviti
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!--Bootstrap Resources-->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PONAlyzer</title>
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<!--Header Navbar with statistics elements and functional buttons-->
+<header class="navbar sticky-top bg-dark flex-md-nowrap p-3 shadow" data-bs-theme="dark">
+    <a class="navbar-brand col-md-0 col-lg-0 me-0 px-1 fs-4 text-white" href="#">PONAlyzer</a>
+    <!--List containing statistics items-->
+    <ul class="list-group list-group-horizontal">
+        <li class="list-group-item active" id="totalMessages">Total Messages: 0</li>
+        <li class="list-group-item active" id="totalAlarms">Total Alarms: 0</li>
+        <li class="list-group-item active" id="activePorts">Active Ports: 0</li>
+        <li class="list-group-item active" id="activeONUs">Active ONUs: 0</li>
+    </ul> 
+    <div>
+        <!--Buttons for statistics, filters, config, and scanning-->
+        <button id="buttonReload" type="button" class="btn btn-primary" onclick="reloadPage()">Reload</button>
+        <button id="buttonStats" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#statsModal">Stats</button>
+        <button id="button0" type="button" class="btn btn-primary" onclick="refreshFilters()" data-bs-toggle="modal" data-bs-target="#filterModal">Filter</button>
+        <button id="buttonConfig" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#configModal">Config</button>
+        <button id="buttonExport" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exportModal">Export PCAP</button>
+        <button id="scanPcapButton" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#scanModal">Scan PCAP</button>
+        <button id="scanNetworkButton" type="button" class="btn btn-primary" onclick="scanLive()">Scan Network</button>
+        <button id="scanNetworkSseButton" type="button" class="btn btn-primary" onclick="scanSSE()">Scan Network SSE</button>
+        <button id="buttonInject" type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#injectionModal">Injection</button>
+    </div>
+  </header>
+
+<body>
+
+<!--Bootstrap JS dependencies-->
+<script src="bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!--Button to order messages in ascending/descending order-->
+<div>
+  <button id="buttonOrder" type="button" class="btn btn-primary w-100" style="border-radius: 0%; height:min-content;" onclick="toggleOrder()">&uarr;</button>
+</div>
+
+<!--Main accordion container containing all the messages-->
+<div class="accordion accordion-flush" id="messages">
+
+</div>
+
+<!--Modal window containing filtering options-->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true" data-bs-theme="dark" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="filterModalLabel" style="color:white;">Select Port/ONU to be filtered</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="stopRefreshFilters()"></button>
+        </div>
+        <div class="modal-body">
+            <!--List containing all possible ports/onus which can be filtered-->
+            <ul class="list-group" id="filterModalList">
+
+            </ul>
+            <!--Textbox for inputting string filter-->
+            <form id="inputFilterForm">
+              <div class="mt-3">
+                <label for="inputFilter" class="form-label" style="color: white;">Filter for String</label>
+                <input type="text" class="form-control" id="inputFilter">
+              </div>
+            </form>
+            <!--Textbox for inputting refresh interval of available port/onu filter elements-->
+            <form id="filterRefreshForm">
+              <div class="mt-3">
+                <label for="filterRefresh" class="form-label" style="color: white;">Refresh Interval (ms)</label>
+                <div class="input-group">
+                  <input type="text" class="form-control" id="filterRefresh" placeholder="0">
+                  <button type="button" class="btn btn-primary" onclick="setFilterRefreshInterval()">Apply</button>
+                </div>
+              </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="stopRefreshFilters()">Close</button>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="applyFilter()">Apply Filter</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--Modal window containing port/onu statistics-->
+<div class="modal fade" id="statsModal" tabindex="-1" aria-labelledby="statsModalLabel" aria-hidden="true" data-bs-theme="dark" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="statsModalLabel" style="color:white;">Statistics</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="stopRefreshStats()"></button>
+        </div>
+        <div class="modal-body">
+            <!--List containing various statistics elements-->
+            <ul class="list-group" id="statsModalList">
+              <li class="list-group-item" id="statsTotalMessages">Total Messages: 0</li>
+              <li class="list-group-item text-bg-danger" id="statsTotalAlarms">Total Alarms: 0</li>
+              <li class="list-group-item" style="background-color: peru; color: white;" id="statsFailedOperations">Failed (Total) ONU Operations: 0</li>
+              <li class="list-group-item" style="background-color: purple; color: white;" id="statsDecodingErrors">Decoding Errors: 0</li>
+              <li class="list-group-item" style="background-color: magenta; color: white;" id="statsSuspiciousOrigins">Suspicious Origins: 0</li>
+              <li class="list-group-item" id="statsController">SDN-Controller Address: </li>
+              <li class="list-group-item" id="statsActivePorts">Active Ports: 0</li>
+              <li class="list-group-item" id="statsActiveONUs">Active ONUs: 0</li>
+              <li class="list-group-item" id="statsTotalTransactions">Total Transactions: 0</li>
+              <li class="list-group-item text-bg-warning" id="statsMissingMessages">Missing Messages: 0</li>
+              <li class="list-group-item d-flex overflow-auto" style="white-space: nowrap;" id="statsSkippedTIDs">Skipped TIDs: 0
+                <!--<ul class="list-group list-group-horizontal text-bg-info" id="statsSkippedTIDs">
+                  <li class="list-group-item text-bg-info">Skipped TIDs: 0</li>
+                </ul>-->
+              </li>
+              <li class="list-group-item text-bg-info" id="statsRequestResponseSwapped">Requests/Responds Swapped: 0</li>
+              <li class="list-group-item text-bg-info" id="statsSwappedTransactions">Transactions Out Of Sequence: 0</li>
+              <li class="list-group-item text-bg-info" id="statsUnorderedTimestamps">Timestamps Out Of Sequence: 0</li>
+              <li class="list-group-item" id="statsMPS">Messages Per Second: 0</li>
+              <li class="list-group-item" id="statsResponseTime" style="background-color:maroon;">Average Response Time (ms): 0</li>
+            </ul>
+            <!--Textbox for inputting refresh interval of statistics-->
+            <form id="statsRefreshForm">
+              <div class="mt-3">
+                <label for="statsRefresh" class="form-label" style="color: white;">Refresh Interval (ms)</label>
+                <div class="input-group">
+                  <input type="text" class="form-control" id="statsRefresh" placeholder="0">
+                  <button type="button" class="btn btn-primary" onclick="setStatsRefreshInterval()">Apply</button>
+                </div>
+              </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="stopRefreshStats()">Close</button>
+          <button type="button" class="btn btn-primary" onclick="refreshStats()">Analyze</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--Modal window containing various configuration parameters-->
+  <div class="modal fade" id="configModal" tabindex="-1" aria-labelledby="configModalLabel" aria-hidden="true" data-bs-theme="dark">
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="configModalLabel" style="color:white;">Configure Scanning Parameters</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <!--Textboxes for inputting various configuration parameters to be sent to server-->
+            <form id="configForm">
+              <div class="mt-3">
+                <label for="configInterface" class="form-label" style="color: white;">Interface Name</label>
+                <input type="text" class="form-control" id="configInterface" placeholder="ens18">
+                <label for="configFilter" class="form-label" style="color: white;">BPF-Filter</label>
+                <input type="text" class="form-control" id="configFilter" placeholder="tcp && port 9191">
+                <label for="configPackets" class="form-label" style="color: white;">Max Packets per Burst</label>
+                <input type="text" class="form-control" id="configPackets" placeholder="100">
+                <label for="configInterval" class="form-label" style="color: white;">Burst Interval (ms)</label>
+                <input type="text" class="form-control" id="configInterval" placeholder="1000">
+                <label for="configBuffer" class="form-label" style="color: white;">Buffer/Channel Size</label>
+                <input type="text" class="form-control" id="configBuffer" placeholder="10000">
+              </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="applyConfig()">Apply Config</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!--Modal window containing various injection parameters-->
+  <div class="modal fade" id="injectionModal" tabindex="-1" aria-labelledby="injectionModalLabel" aria-hidden="true" data-bs-theme="dark">
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="injectionModalLabel" style="color:white;">Configure Injection Parameters</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <!--Textboxes for inputting various injection parameters to be sent to server-->
+            <form id="injectionForm">
+              <div class="mt-3">
+                <label for="injectionType" class="form-label" style="color: white;">Injection Type</label>
+                <select class="form-select" id="injectionType">
+                  <option selected value="OLT_GetOnuInfo">OLT_GetOnuInfo(Port ID, ONU ID)</option>
+                  <option value="OLT_GetOnuStatistics">OLT_GetOnuStatistics(Port ID, ONU ID)</option>
+                  <option value="OLT_GetDeviceInfo">OLT_GetDeviceInfo()</option>
+                  <option value="OMCI_SetAllocId">OMCI_SetAllocId(Port ID, ONU ID, Transaction ID, Entity Instance)</option>
+                  <option value="OMCI_SetAdminState0">OMCI_SetAdminState0(Port ID, ONU ID, Transaction ID)</option>
+                  <option value="OMCI_GetRequest">OMCI_GetRequest(Port ID, ONU ID, Transaction ID, Entity Instance, Entity Class)</option>
+                  <option value="OMCI_MibResetRequest">OMCI_MibResetRequest(Port ID, ONU ID, Transaction ID)</option>
+                  <option value="OMCI_MIBUploadRequest">OMCI_MIBUploadRequest(Port ID, ONU ID, Transaction ID)</option>
+                  <option value="OMCI_MIBUploadProcess">OMCI_MIBUploadProcess(Port ID, ONU ID, Transaction ID, No. Commands)</option>
+                  <option value="OMCI_RebootRequest">OMCI_RebootRequest(Port ID, ONU ID, Transaction ID)</option>
+                  <option value="OMCI_GetAllAlarmsRequest">OMCI_GetAllAlarmsRequest(Port ID, ONU ID, Transaction ID)</option>
+                  <option value="OMCI_CustomMessage">OMCI_CustomMessage(Port ID, ONU ID, OMCI Message)</option>
+                  <option value="OMCI_SetRequest">OMCI_SetRequest(Port ID, ONU ID, Transaction ID, Entity Instance, Entity Class, Attributes)</option>
+                  <option value="OMCI_CreateRequest">OMCI_CreateRequest(Port ID, ONU ID, Transaction ID, Entity Instance, Entity Class, Attributes)</option>
+                  <option value="OMCI_DeleteRequest">OMCI_DeleteRequest(Port ID, ONU ID, Transaction ID, Entity Instance, Entity Class)</option>
+                  <option value="OMCI_Stresstest">OMCI_Stresstest(Port ID, ONU ID, Transaction ID, No. Commands, Timeout)</option>
+                  <option value="OMCI_StresstestMulti">OMCI_StresstestMulti(Port ID, ONU ID, Transaction ID, No. Commands, Timeout, Attributes=No. Clients)</option>
+                </select>
+                <label for="injectionIP" class="form-label" style="color: white;">OLT IP</label>
+                <input type="text" class="form-control" id="injectionIP" placeholder="172.16.5.18:9191">
+                <label for="injectionTimeout" class="form-label" style="color: white;">Connection Timeout (s)</label>
+                <input type="text" class="form-control" id="injectionTimeout" placeholder="5">
+                <label for="injectionPort" class="form-label" style="color: white;">Interface/Port ID</label>
+                <input type="text" class="form-control" id="injectionPort" placeholder="1">
+                <label for="injectionOnu" class="form-label" style="color: white;">ONU ID</label>
+                <input type="text" class="form-control" id="injectionOnu" placeholder="1">
+                <label for="injectionTid" class="form-label" style="color: white;">Transaction ID</label>
+                <input type="text" class="form-control" id="injectionTid" placeholder="1234">
+                <label for="injectionInstance" class="form-label" style="color: white;">Entity Instance</label>
+                <input type="text" class="form-control" id="injectionInstance" placeholder="0">
+                <label for="injectionClass" class="form-label" style="color: white;">Entity Class</label>
+                <input type="text" class="form-control" id="injectionClass" placeholder="2">
+                <label for="injectionCommands" class="form-label" style="color: white;">No. Commands</label>
+                <input type="text" class="form-control" id="injectionCommands" placeholder="0">
+                <label for="injectionAttributes" class="form-label" style="color: white;">Attributes</label>
+                <input type="text" class="form-control" id="injectionAttributes" placeholder="attribute1=value1,attribute2=value2,...">
+                <label for="injectionMessage" class="form-label" style="color: white;">Custom OMCI Message</label>
+                <input type="text" class="form-control" id="injectionMessage" placeholder="012c490a0100000a800000000000000000000000000000000000000000000000000000000000000000000028">
+                <label for="injectionResult" class="form-label" style="color: white;">Injection Results:</label>
+                <div class="overflow-scroll" id="injectionResult" style="color: white;">Ready!</div>
+              </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" onclick="inject()">Inject</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!--Modal window for exporting PCAP file-->
+    <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true" data-bs-theme="dark">
+      <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exportModalLabel" style="color:white;">Export PCAP</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              <!--Textbox for inputting PCAP file name-->
+              <form id="exportForm" onsubmit="return false;">
+                <div class="mt-3">
+                  <label for="exportPCAP" class="form-label" style="color: white;">PCAP Output Name (uses timestamp by default)</label>
+                  <input type="text" class="form-control" id="exportPCAP" placeholder="output.pcap">
+                  <label for="exportResult" class="form-label" style="color: white;">Export Results:</label>
+                  <div class="overflow-scroll" id="exportResult" style="color: white;">Ready!</div>
+                </div>
+              </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="exportPCAP()">Export PCAP</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+        <!--Modal window for scanning PCAP file-->
+    <div class="modal fade" id="scanModal" tabindex="-1" aria-labelledby="scanModalLabel" aria-hidden="true" data-bs-theme="dark">
+      <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h1 class="modal-title fs-5" id="scanModalLabel" style="color:white;">Scan PCAP</h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+              <!--Textbox for inputting PCAP file name-->
+              <form id="scanForm" onsubmit="return false;">
+                <div class="mt-3">
+
+                  <label for="selectPCAP" class="form-label" style="color: white;">PCAP Input Name</label>
+                  <select id="selectPCAP" class="form-select" aria-label="Default select example">
+                    <option selected>Select PCAP file</option>
+                  </select>
+
+                  <!-- <label for="scanPCAP" class="form-label" style="color: white;">PCAP Input Name</label>
+                  <input type="text" class="form-control" id="scanPCAP" placeholder="testfile.pcap"> -->
+                  <label for="scanResult" class="form-label" style="color: white;">Scan Results:</label>
+                  <div class="overflow-scroll" id="scanResult" style="color: white;">Ready!</div>
+                </div>
+              </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary" onclick="scanPCAP()">Scan PCAP</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+  <!--Load main script after index page is built-->
+  <script type="text/javascript" src="script.js"></script>
+</body>
+</html> 

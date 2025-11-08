@@ -1,0 +1,291 @@
+syntax = "proto3";
+
+option go_package = "github.com/opencord/voltha-protos/v5/go/voltha";
+option java_package = "org.opencord.voltha.events";
+
+package event;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "voltha_protos/common.proto";
+
+
+message EventFilterRuleKey {
+
+    enum EventFilterRuleType {
+        filter_all = 0;
+        category = 1;
+        sub_category = 2;
+        kpi_event_type = 3;
+        config_event_type = 4;
+        device_event_type = 5;
+    }
+}
+
+message EventFilterRule {
+    EventFilterRuleKey.EventFilterRuleType key = 1;
+    string value = 2;
+}
+message EventFilter {
+    string id = 1 ;
+    bool enable = 2;
+    string device_id = 3;
+    string event_type = 4;
+    repeated EventFilterRule rules = 5;
+}
+
+message EventFilters {
+    repeated EventFilter filters = 1;
+}
+
+message ConfigEventType {
+    enum Types {
+        add = 0; // A new config has been added
+        remove = 1; // A config has been removed
+        update = 2; // A config has been updated
+    }
+}
+
+message ConfigEvent {
+    ConfigEventType.Types type = 1;
+
+    string hash = 2; // hash for this change, can be used for quick lookup
+    string data = 3; // the actual new data, in json format
+}
+
+message KpiEventType {
+    enum Types {
+        slice = 0; // slice: a set of path/metric data for same time-stamp
+        ts = 1; // time-series: array of data for same metric
+    }
+}
+
+/*
+ * Struct to convey a dictionary of metric metadata.
+ */
+message MetricMetaData {
+    string title = 1; // Metric group or individual metric name
+    double ts = 2; // UTC time-stamp of data (seconds since epoch) of
+    // when the metric or metric group was collected.
+    // If this is a 15-min historical group, it is the
+    // time of the collection and reporting, not the
+    // start or end of the 15-min group interval.
+
+    string logical_device_id = 3; // The logical device ID of the VOLTHA
+    // (equivalent to the DPID that ONOS has
+    // for the VOLTHA device without the
+    //  'of:' prefix
+    string serial_no = 4; // The OLT, ONU, ... device serial number
+    string device_id = 5; // The OLT, ONU, ... physical device ID
+
+    map<string, string> context = 6; // Name value pairs that provide additional
+    // context information on the metrics being
+    // reported.
+
+    string uuid = 7; // Transaction identifier used to match On
+    // Demand gRPC requests with kafka responses
+}
+
+/*
+ * Struct to convey a dictionary of metric->value pairs. Typically used in
+ * pure shared-timestamp or shared-timestamp + shared object prefix situations.
+ */
+message MetricValuePairs {
+
+    // Metric / value pairs.
+    map<string, float> metrics = 1;
+
+}
+
+/*
+ * Struct to group metadata for a metric (or group of metrics) with the key-value
+ * pairs of collected metrics
+ */
+message MetricInformation {
+    MetricMetaData metadata = 1;
+    map<string, float> metrics = 2;
+}
+
+/*
+ * Legacy KPI Event structured.  In mid-August, the KPI event format was updated
+ *                               to a more easily parsable format. See VOL-1140
+ *                               for more information.
+ */
+message KpiEvent {
+
+    KpiEventType.Types type = 1;
+
+    // Fields used when for slice:
+
+    float ts = 2; // UTC time-stamp of data in slice mode (seconds since epoc)
+
+    map<string, MetricValuePairs> prefixes = 3;
+
+}
+
+message KpiEvent2 {
+    // Type of KPI Event
+    KpiEventType.Types type = 1;
+
+    // Fields used when for slice:
+    double ts = 2; // UTC time-stamp of data in slice mode (seconds since epoch)
+    // of the time this entire KpiEvent was published to the kafka bus
+
+    repeated MetricInformation slice_data = 3;
+}
+
+/*
+ * Describes the events specific to device
+ */
+message DeviceEvent {
+    // Identifier of the originating resource of the event, for ex: device_id
+    string resource_id = 1;
+
+    // device_event_name indicates clearly the name of the device event
+    string device_event_name = 2;
+
+    // Textual explanation of the device event
+    string description = 3;
+
+    // Key/Value storage for extra information that may give context to the event
+    map<string, string> context = 4;
+
+}
+/*
+ * Describes the events specific to an RPC request
+ */
+message RPCEvent {
+    // RPC name
+    string rpc = 1;
+
+    // The operation id of that request.  Can be a log correlation ID
+    string operation_id = 2;
+
+    // Identifies the service name originating the event
+    string service = 3;
+
+    // Identifies the stack originating the event
+    string stack_id = 4;
+
+    // Identifies the resource upon which the action is taken, e.g. device_id
+    string resource_id = 5;
+
+    // Textual explanation of the event
+    string description = 6;
+
+    // Key/Value storage for extra information that may give context to the event
+    map<string, string> context = 7;
+
+    // Status of the RPC Event
+    common.OperationResp status = 8;
+}
+
+/*
+ * Identify the area of the system impacted by the event.
+ */
+message EventCategory {
+    enum Types {
+        COMMUNICATION = 0;
+        ENVIRONMENT = 1;
+        EQUIPMENT = 2;
+        SERVICE = 3;
+        PROCESSING = 4;
+        SECURITY = 5;
+        // Add new event areas here
+    }
+}
+
+/*
+ * Identify the functional category originating the event
+ */
+message EventSubCategory {
+    enum Types {
+        PON = 0;
+        OLT = 1;
+        ONT = 2;
+        ONU = 3;
+        NNI = 4;
+        NONE = 5; //Adding None for RPC Events
+        // Add new event categories here.
+    }
+}
+
+/*
+ * Identify the type of event
+*/
+message EventType {
+    enum Types {
+        CONFIG_EVENT = 0;
+        KPI_EVENT = 1;
+        KPI_EVENT2 = 2;
+        DEVICE_EVENT = 3;
+        RPC_EVENT = 4;
+    }
+}
+
+/*
+ * Identify the functional category originating the event
+ */
+message EventHeader {
+    // Unique ID for this event.  e.g. voltha.some_olt.1234
+    string id = 1;
+
+    // Refers to the functional area affect by the event
+    EventCategory.Types category = 2;
+
+    // Refers to functional category of the event
+    EventSubCategory.Types sub_category = 3;
+
+    // Refers to the type of the event
+    EventType.Types type = 4;
+
+    // The version identifier for this event type, thus allowing each
+    // event type to evolve independently. The version should be in the
+    // format “MAJOR.MINOR” format and minor changes must only be additive
+    // and non-breaking.
+    string type_version = 5;
+
+    // Timestamp at which the event was first raised.
+    // This represents the UTC time stamp since epoch (in seconds) when the
+    // the event was first raised from the source entity.
+    // If the source entity doesn't send the raised_ts, this shall be set
+    // to timestamp when the event was received.
+    google.protobuf.Timestamp raised_ts = 6;
+
+    // Timestamp at which the event was reported.
+    // This represents the UTC time stamp since epoch (in seconds) when the
+    // the event was reported (this time stamp is >= raised_ts).
+    // If the source entity that reported this event doesn't send the 
+    // reported_ts, this shall be set to the same value as raised_ts.
+    google.protobuf.Timestamp reported_ts = 7;
+}
+
+/*
+ * Event Structure
+ */
+message Event {
+    // event header
+    EventHeader header = 1;
+
+    // oneof event types referred by EventType.
+    oneof event_type {
+        // Refers to ConfigEvent
+        ConfigEvent config_event = 2;
+
+        // Refers to KpiEvent
+        KpiEvent kpi_event = 3;
+
+        // Refers to KpiEvent2
+        KpiEvent2 kpi_event2 = 4;
+
+        // Refers to DeviceEvent
+        DeviceEvent device_event = 5;
+
+        // Refers to an RPC Event
+        RPCEvent rpc_event = 6;
+
+        // Add other event types here.
+
+    }
+}
+

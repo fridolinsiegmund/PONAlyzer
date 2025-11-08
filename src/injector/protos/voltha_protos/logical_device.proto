@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+option go_package = "github.com/opencord/voltha-protos/v5/go/voltha";
+option java_package = "org.opencord.voltha.logical_device";
+option java_outer_classname = "OFLogicalDevice";
+
+package logical_device;
+
+import "google/api/annotations.proto";
+import "voltha_protos/openflow_13.proto";
+
+message LogicalPortId {
+    // unique id of logical device
+    string id = 1;
+
+    // id of the port on the logical device
+    string port_id = 2;
+}
+
+message LogicalPort {
+    string id = 1;
+    openflow_13.ofp_port ofp_port = 2;
+    string device_id = 3;
+    uint32 device_port_no = 4;
+    bool root_port = 5;
+    openflow_13.ofp_port_stats ofp_port_stats = 6;
+}
+
+message LogicalPorts {
+    repeated LogicalPort items = 1;
+}
+
+message LogicalDevice {
+
+    // unique id of logical device
+    string id = 1;
+
+    // unique datapath id for the logical device (used by the SDN controller)
+    uint64 datapath_id = 2;
+
+    // device description
+    openflow_13.ofp_desc desc = 3;
+
+    // device features
+    openflow_13.ofp_switch_features switch_features = 4;
+
+    // name of the root device anchoring logical device
+    string root_device_id = 5;
+}
+
+message LogicalDevices {
+    repeated LogicalDevice items = 1;
+}
